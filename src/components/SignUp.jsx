@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import FileUploader from "react-firebase-file-uploader";
 import styled from "@emotion/styled";
 import firebase from "../context/firebase";
 import AuthContext from "../context/auth/authContext";
-import { FirebaseContext } from "../context/firebase";
 
 const Button = styled.button`
   background-color: #007bff;
@@ -15,7 +15,6 @@ const Button = styled.button`
   border: none;
   display: inline-block;
 `;
-
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -30,14 +29,24 @@ const Input = styled.input`
   color: #000;
 `;
 
-const Login = () => {
+const SignUp = () => {
   let history = useHistory();
 
+  //* State Image
+  const [imgname, setImgName] = useState("");
+  const [upload, setUpload] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [urlimg, setUrlImg] = useState("");
+
+  const authContext = useContext(AuthContext);
+  const { users, addUsers } = authContext;
   const [user, setUser] = useState({
+    name: "",
     email: "",
+    prfileImage: "",
     password: "",
   });
-  const { email, password } = user;
+  const { name, email, password, prfileImage } = user;
 
   const handleChange = (e) => {
     setUser({
@@ -45,15 +54,21 @@ const Login = () => {
       [e.target.name]: e.target.value,
     });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    //*validation
     try {
-      await firebase.login(email, password);
+      await firebase.register(name, email, password, prfileImage);
+
+      setUser({
+        name: "",
+        email: "",
+        password: "",
+        prfileImage: "",
+      });
       history.push("/home");
     } catch (error) {
-      console.log("Hubo un Error", error);
+      console.error("Error to create the User", error);
     }
   };
 
@@ -69,8 +84,10 @@ const Login = () => {
   return (
     <div id="login-page">
       <div id="login-card">
-        <h2>LogIn</h2>
+        <h2>SignUp</h2>
         <Form onSubmit={handleSubmit}>
+          <label>User</label>
+          <Input type="text" value={name} name="name" onChange={handleChange} />
           <label>E-mail</label>
           <Input
             type="email"
@@ -78,6 +95,7 @@ const Login = () => {
             name="email"
             onChange={handleChange}
           />
+
           <label>Password</label>
           <Input
             type="password"
@@ -85,17 +103,16 @@ const Login = () => {
             name="password"
             onChange={handleChange}
           />
-          <Button>Login</Button>
+          <Button className="login-button">SignUp</Button>
         </Form>
-        <Button onClick={signGoogle}>Login with Google</Button>
-
-        <a style={{ color: "#fff" }} href="/">
+        <Button onClick={signGoogle}>SignUp with Google</Button>
+        <a style={{ color: "#fff" }} href="/login">
           {" "}
-          Don't you have an Account? Please SignUp
+          Do you have already an Account?
         </a>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default SignUp;
